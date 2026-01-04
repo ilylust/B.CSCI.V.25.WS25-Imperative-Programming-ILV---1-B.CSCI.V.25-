@@ -69,12 +69,14 @@ impl<'a> Display for Information<'a> {
 
 struct AddressBook<'a>(Vec<Information<'a>>);
 
-impl<'a> IntoIterator for AddressBook<'a> {
-    type Item = Information<'a>;
-    type IntoIter = std::vec::IntoIter<Self::Item>;
-    
-    fn into_iter(self) -> std::vec::IntoIter<Information<'a>> {
-        self.0.into_iter()
+struct AddressBookIntoIter<'a>(&'a AddressBook<'a>);
+
+impl<'a> IntoIterator for AddressBookIntoIter<'a> {
+    type Item = &'a Information<'a>;
+    type IntoIter = std::slice::Iter<'a, Information<'a>>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        self.0.0.iter()
     }
 }
 
@@ -127,12 +129,15 @@ fn main() {
     let my_address = Information::from(("Tutu", "5839168", "myemail@gmail.com", "Ulica kriza"));
     let other_address = Information::from(("Bubu", "6136717", "myemail2@gmail.com", "Ulica kriza petrova"));
     
-    let mut address_collection = AddressBook(Vec::new());
-    
-    address_collection.0.push(my_address.clone());
-    address_collection.0.push(other_address.clone());
-    
-    address_collection.into_iter().for_each(|x| println!("{}", x));
+    let mut book = AddressBook(Vec::new());
+    book.0.push(my_address.clone());
+    book.0.push(other_address.clone());
+    let address_collection = AddressBookIntoIter(&book);
+
+    for info in address_collection {
+        println!("{}", info.name);
+    }
+
     // tuple test for address book
     let info_tuple: (&str, &str, &str, &str) = other_address.into();
     println!("{:?}", info_tuple);
